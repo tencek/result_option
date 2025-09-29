@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-09-29
+
 ### Added
 
 - `From<Option<T>>` implementation for converting `Option<T>` to `ResultOption<T, E>`
 - CHANGELOG.md
+- CONTRIBUTING.md
+
+### Removed
+
+- Cargo.lock from repository
 
 ## [0.1.1] - 2025-09-20
 
@@ -36,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 (Changed|Deprecated|Removed|Fixed|Security)
 
-[Unreleased]: https://github.com/tencek/result_option/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/tencek/result_option/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/tencek/result_option/releases/tag/v0.2.0
 [0.1.1]: https://github.com/tencek/result_option/releases/tag/v0.1.1
 [0.1.0]: https://github.com/tencek/result_option/releases/tag/v0.1.0
