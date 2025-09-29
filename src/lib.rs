@@ -166,3 +166,41 @@ impl<T, E> From<Result<Option<T>, E>> for ResultOption<T, E> {
         }
     }
 }
+
+impl<T, E> From<Option<T>> for ResultOption<T, E> {
+    fn from(o: Option<T>) -> Self {
+        match o {
+            Some(t) => Self::Ok(t),
+            None => Self::None,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_option_some() {
+        let opt: Option<i32> = Some(42);
+        let result_opt: ResultOption<i32, String> = ResultOption::from(opt);
+        assert_eq!(result_opt, ResultOption::Ok(42));
+    }
+
+    #[test]
+    fn test_from_option_none() {
+        let opt: Option<i32> = None;
+        let result_opt: ResultOption<i32, String> = ResultOption::from(opt);
+        assert_eq!(result_opt, ResultOption::None);
+    }
+
+    #[test]
+    fn test_from_option_conversion_syntax() {
+        // Test using Into trait (automatic conversion)
+        let result_opt: ResultOption<String, ()> = Some("hello".to_string()).into();
+        assert_eq!(result_opt, ResultOption::Ok("hello".to_string()));
+
+        let result_opt: ResultOption<String, ()> = None.into();
+        assert_eq!(result_opt, ResultOption::None);
+    }
+}
