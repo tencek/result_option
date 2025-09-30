@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `From<Option<&T>>` implementation for converting `Option<&T>` to `ResultOption<&T, E>`
 - Examples in documentation for `From<Option<T>>` implementation
+- All the `unwrap_xyz` functions: `unwrap`, `unwrap_or`, `unwrap_or_else`,
+`unwrap_unchecked`, `unwrap_or_default`, `unwrap_err`, `unwrap_err_unchecked`,
+`unwrap_option`, `unwrap_option_unchecked`, `unwrap_option_or_some`,
+`unwrap_option_or_some_default`, `unwrap_option_or_none`
 
 ## [0.2.0] - 2025-09-29
 

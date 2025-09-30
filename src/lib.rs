@@ -155,6 +155,422 @@ impl<T, E> ResultOption<T, E> {
         }
         self
     }
+
+    /// Unwraps a `ResultOption`, yielding the content of an `Ok`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is a `None` or `Err`, with a panic message including the
+    /// passed message and the content of the `Err` (if applicable).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(x.unwrap(), 2);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// x.unwrap(); // panics
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("emergency failure");
+    /// x.unwrap(); // panics with `emergency failure`
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn unwrap(self) -> T {
+        match self {
+            Self::Ok(t) => t,
+            Self::None => panic!("called `ResultOption::unwrap()` on a `None` value"),
+            Self::Err(_) => panic!("called `ResultOption::unwrap()` on an `Err` value"),
+        }
+    }
+
+    /// Returns the contained `Ok` value, consuming the `self` value,
+    /// without checking that the value is not `None` or `Err`.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method on a `None` or `Err` value is *[undefined behavior]*.
+    ///
+    /// [undefined behavior]: https://doc.rust-lang.org/reference/behavior-considered-undefined.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(unsafe { x.unwrap_unchecked() }, 2);
+    /// ```
+    ///
+    /// ```no_run
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// let y = unsafe { x.unwrap_unchecked() }; // undefined behavior!
+    /// ```
+    ///
+    /// ```no_run
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// let y = unsafe { x.unwrap_unchecked() }; // undefined behavior!
+    /// ```
+    #[inline]
+    pub unsafe fn unwrap_unchecked(self) -> T {
+        debug_assert!(self.is_ok());
+        match self {
+            Self::Ok(t) => t,
+            // SAFETY: the safety contract must be upheld by the caller.
+            Self::None | Self::Err(_) => unsafe { core::hint::unreachable_unchecked() },
+        }
+    }
+
+    /// Returns the contained `Ok` value or a provided default.
+    ///
+    /// Arguments passed to `unwrap_or` are eagerly evaluated; if you are passing
+    /// the result of a function call, it is recommended to use [`unwrap_or_else`],
+    /// which is lazily evaluated.
+    ///
+    /// [`unwrap_or_else`]: ResultOption::unwrap_or_else
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let default_value = 42;
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(99);
+    /// assert_eq!(x.unwrap_or(default_value), 99);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(x.unwrap_or(default_value), 42);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// assert_eq!(x.unwrap_or(default_value), 42);
+    /// ```
+    #[inline]
+    pub fn unwrap_or(self, default: T) -> T {
+        match self {
+            Self::Ok(t) => t,
+            Self::None | Self::Err(_) => default,
+        }
+    }
+
+    /// Returns the contained `Ok` value or computes it from a closure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let count = 21;
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(9);
+    /// assert_eq!(x.unwrap_or_else(|| count * 2), 9);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(x.unwrap_or_else(|| count * 2), 42);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// assert_eq!(x.unwrap_or_else(|| count * 2), 42);
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn unwrap_or_else<F: FnOnce() -> T>(self, f: F) -> T {
+        match self {
+            Self::Ok(t) => t,
+            Self::None | Self::Err(_) => f(),
+        }
+    }
+
+    /// Returns the contained `Ok` value or a [`default`](Default::default).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(9);
+    /// assert_eq!(x.unwrap_or_default(), 9);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(x.unwrap_or_default(), 0);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// assert_eq!(x.unwrap_or_default(), 0);
+    /// ```
+    #[inline]
+    pub fn unwrap_or_default(self) -> T
+    where
+        T: Default,
+    {
+        match self {
+            Self::Ok(t) => t,
+            Self::None | Self::Err(_) => T::default(),
+        }
+    }
+
+    /// Unwraps a `ResultOption`, yielding the content of an `Err`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is an `Ok` or `None`, with a panic message including the
+    /// content of the `Ok` (if applicable).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("emergency failure");
+    /// assert_eq!(x.unwrap_err(), "emergency failure");
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// x.unwrap_err(); // panics
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// x.unwrap_err(); // panics
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn unwrap_err(self) -> E {
+        match self {
+            Self::Err(e) => e,
+            Self::Ok(_) => panic!("called `ResultOption::unwrap_err()` on an `Ok` value"),
+            Self::None => panic!("called `ResultOption::unwrap_err()` on a `None` value"),
+        }
+    }
+
+    /// Returns the contained `Err` value, consuming the `self` value,
+    /// without checking that the value is not `Ok` or `None`.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method on an `Ok` or `None` value is *[undefined behavior]*.
+    ///
+    /// [undefined behavior]: https://doc.rust-lang.org/reference/behavior-considered-undefined.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("emergency failure");
+    /// assert_eq!(unsafe { x.unwrap_err_unchecked() }, "emergency failure");
+    /// ```
+    ///
+    /// ```no_run
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// let y = unsafe { x.unwrap_err_unchecked() }; // undefined behavior!
+    /// ```
+    ///
+    /// ```no_run
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// let y = unsafe { x.unwrap_err_unchecked() }; // undefined behavior!
+    /// ```
+    #[inline]
+    pub unsafe fn unwrap_err_unchecked(self) -> E {
+        debug_assert!(self.is_err());
+        match self {
+            Self::Err(e) => e,
+            // SAFETY: the safety contract must be upheld by the caller.
+            Self::Ok(_) | Self::None => unsafe { core::hint::unreachable_unchecked() },
+        }
+    }
+
+    /// Unwraps a `ResultOption`, returning `Some` value if `Ok`, `None` if `None`, or panicking if `Err`.
+    ///
+    /// This treats the `ResultOption` as an `Option<T>`, where both `None` and `Err` are
+    /// considered "no value" cases, but only `Err` causes a panic.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is an `Err`, with a panic message including the content of the `Err`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(x.unwrap_option(), Some(2));
+    ///
+    /// let y: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(y.unwrap_option(), None);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("emergency failure");
+    /// x.unwrap_option(); // panics with `emergency failure`
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn unwrap_option(self) -> Option<T> {
+        match self {
+            Self::Ok(t) => Some(t),
+            Self::None => None,
+            Self::Err(_) => panic!("called `ResultOption::unwrap_option()` on an `Err` value"),
+        }
+    }
+
+    /// Returns the contained value as `Option<T>`, consuming the `self` value,
+    /// without checking that the value is not `Err`.
+    ///
+    /// This converts `Ok(t)` to `Some(t)` and `None` to `None`, but assumes
+    /// there is no `Err` variant present.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method on an `Err` value is *[undefined behavior]*.
+    ///
+    /// [undefined behavior]: https://doc.rust-lang.org/reference/behavior-considered-undefined.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(unsafe { x.unwrap_option_unchecked() }, Some(2));
+    ///
+    /// let y: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(unsafe { y.unwrap_option_unchecked() }, None);
+    /// ```
+    ///
+    /// ```no_run
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// let y = unsafe { x.unwrap_option_unchecked() }; // undefined behavior!
+    /// ```
+    #[inline]
+    pub unsafe fn unwrap_option_unchecked(self) -> Option<T> {
+        debug_assert!(!self.is_err());
+        match self {
+            Self::Ok(t) => Some(t),
+            Self::None => None,
+            // SAFETY: the safety contract must be upheld by the caller.
+            Self::Err(_) => unsafe { core::hint::unreachable_unchecked() },
+        }
+    }
+
+    /// Converts to `Option<T>`, providing a default value for `Err` cases.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(x.unwrap_option_or_some(42), Some(2));
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(x.unwrap_option_or_some(42), None);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// assert_eq!(x.unwrap_option_or_some(42), Some(42));
+    /// ```
+    #[inline]
+    pub fn unwrap_option_or_some(self, default: T) -> Option<T> {
+        match self {
+            Self::Ok(t) => Some(t),
+            Self::None => None,
+            Self::Err(_) => Some(default),
+        }
+    }
+
+    /// Converts to `Option<T>`, using the default value of `T` for `Err` cases.
+    ///
+    /// This is like `unwrap_option_or_some` but uses `T::default()` instead of requiring
+    /// a parameter, making it convenient when the default value is appropriate.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(42);
+    /// assert_eq!(x.unwrap_option_or_some_default(), Some(42));
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(x.unwrap_option_or_some_default(), None);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// assert_eq!(x.unwrap_option_or_some_default(), Some(0)); // 0 is default for u32
+    /// ```
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// // With String, the default is an empty string
+    /// let x: ResultOption<String, i32> = ResultOption::Err(404);
+    /// assert_eq!(x.unwrap_option_or_some_default(), Some(String::new()));
+    ///
+    /// let x: ResultOption<String, i32> = ResultOption::Ok("hello".to_string());
+    /// assert_eq!(x.unwrap_option_or_some_default(), Some("hello".to_string()));
+    /// ```
+    #[inline]
+    pub fn unwrap_option_or_some_default(self) -> Option<T>
+    where
+        T: Default,
+    {
+        match self {
+            Self::Ok(t) => Some(t),
+            Self::None => None,
+            Self::Err(_) => Some(T::default()),
+        }
+    }
+
+    /// Converts to `Option<T>` without panicking.
+    ///
+    /// Unlike `unwrap_option()`, this never panics - it converts `Err` to `None`
+    /// just like `None` already becomes `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(x.unwrap_option_or_none(), Some(2));
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(x.unwrap_option_or_none(), None);
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("error");
+    /// assert_eq!(x.unwrap_option_or_none(), None); // No panic!
+    /// ```
+    #[inline]
+    pub fn unwrap_option_or_none(self) -> Option<T> {
+        match self {
+            Self::Ok(t) => Some(t),
+            Self::None | Self::Err(_) => None, // Both None and Err become None
+        }
+    }
 }
 
 impl<T, E> From<Result<Option<T>, E>> for ResultOption<T, E> {
