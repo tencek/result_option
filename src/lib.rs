@@ -168,6 +168,34 @@ impl<T, E> From<Result<Option<T>, E>> for ResultOption<T, E> {
 }
 
 impl<T, E> From<Option<T>> for ResultOption<T, E> {
+    /// Converts an `Option<T>` into a `ResultOption<T, E>` by taking ownership.
+    ///
+    /// This is useful when you have an owned `Option<T>` and want to convert it
+    /// to a three-way enum for more structured error handling.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// // Real-world example: Using Vec::pop() which returns Option<T>
+    /// let mut numbers = vec![42];
+    ///
+    /// // Convert Vec::pop() result to ResultOption
+    /// let last_item: ResultOption<i32, String> = ResultOption::from(numbers.pop());
+    /// assert_eq!(last_item, ResultOption::Ok(42));
+    ///
+    /// let no_item: ResultOption<i32, String> = ResultOption::from(numbers.pop());
+    /// assert_eq!(no_item, ResultOption::None);
+    ///
+    /// // Using String::strip_prefix which returns Option<&str>
+    /// let text = "Hello, world!";
+    /// let stripped: ResultOption<&str, ()> = text.strip_prefix("Hello, ").into();
+    /// assert_eq!(stripped, ResultOption::Ok("world!"));
+    ///
+    /// let no_match: ResultOption<&str, ()> = text.strip_prefix("Hi, ").into();
+    /// assert_eq!(no_match, ResultOption::None);
+    /// ```
     fn from(o: Option<T>) -> Self {
         match o {
             Some(t) => Self::Ok(t),
@@ -209,34 +237,5 @@ impl<T: Clone, E> From<Option<&T>> for ResultOption<T, E> {
             Some(t) => Self::Ok(t.clone()),
             None => Self::None,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_from_option_some() {
-        let opt: Option<i32> = Some(42);
-        let result_opt: ResultOption<i32, String> = ResultOption::from(opt);
-        assert_eq!(result_opt, ResultOption::Ok(42));
-    }
-
-    #[test]
-    fn test_from_option_none() {
-        let opt: Option<i32> = None;
-        let result_opt: ResultOption<i32, String> = ResultOption::from(opt);
-        assert_eq!(result_opt, ResultOption::None);
-    }
-
-    #[test]
-    fn test_from_option_conversion_syntax() {
-        // Test using Into trait (automatic conversion)
-        let result_opt: ResultOption<String, ()> = Some("hello".to_string()).into();
-        assert_eq!(result_opt, ResultOption::Ok("hello".to_string()));
-
-        let result_opt: ResultOption<String, ()> = None.into();
-        assert_eq!(result_opt, ResultOption::None);
     }
 }

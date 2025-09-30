@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `From<Option<&T>>` implementation for converting `Option<&T>` to `ResultOption<&T, E>`
+- Examples in documentation for `From<Option<T>>` implementation
 
 ## [0.2.0] - 2025-09-29
 
