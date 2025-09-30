@@ -26,7 +26,7 @@ impl<T, E> ResultOption<T, E> {
     pub fn is_ok_and(self, f: impl FnOnce(T) -> bool) -> bool {
         match self {
             Self::Ok(t) => f(t),
-            _ => false,
+            Self::None | Self::Err(_) => false,
         }
     }
 
@@ -50,7 +50,7 @@ impl<T, E> ResultOption<T, E> {
     pub fn is_err_and(self, f: impl FnOnce(E) -> bool) -> bool {
         match self {
             Self::Err(e) => f(e),
-            _ => false,
+            Self::None | Self::Ok(_) => false,
         }
     }
 
@@ -60,7 +60,7 @@ impl<T, E> ResultOption<T, E> {
     pub fn ok(self) -> Option<T> {
         match self {
             Self::Ok(t) => Some(t),
-            _ => None,
+            Self::None | Self::Err(_) => None,
         }
     }
 
@@ -70,7 +70,7 @@ impl<T, E> ResultOption<T, E> {
     pub fn err(self) -> Option<E> {
         match self {
             Self::Err(e) => Some(e),
-            _ => None,
+            Self::None | Self::Ok(_) => None,
         }
     }
 
@@ -111,7 +111,7 @@ impl<T, E> ResultOption<T, E> {
     pub fn map_or<U, F: FnOnce(T) -> U>(self, default: U, f: F) -> U {
         match self {
             Self::Ok(t) => f(t),
-            _ => default,
+            Self::None | Self::Err(_) => default,
         }
     }
 
@@ -121,7 +121,7 @@ impl<T, E> ResultOption<T, E> {
     pub fn map_or_else<U, D: FnOnce() -> U, F: FnOnce(T) -> U>(self, default: D, f: F) -> U {
         match self {
             Self::Ok(t) => f(t),
-            _ => default(),
+            Self::None | Self::Err(_) => default(),
         }
     }
 
@@ -131,7 +131,7 @@ impl<T, E> ResultOption<T, E> {
     pub fn map_or_default<U: Default, F: FnOnce(T) -> U>(self, f: F) -> U {
         match self {
             Self::Ok(t) => f(t),
-            _ => U::default(),
+            Self::None | Self::Err(_) => U::default(),
         }
     }
 
