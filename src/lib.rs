@@ -176,6 +176,42 @@ impl<T, E> From<Option<T>> for ResultOption<T, E> {
     }
 }
 
+impl<T: Clone, E> From<Option<&T>> for ResultOption<T, E> {
+    /// Converts an `Option<&T>` into a `ResultOption<T, E>` by cloning the inner value.
+    ///
+    /// This is particularly useful when working with collections that return references,
+    /// such as `HashMap::get()` or `BTreeMap::get()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    /// use std::collections::BTreeMap;
+    ///
+    /// // Real-world scenario: Looking up values in a BTreeMap
+    /// let mut scores = BTreeMap::new();
+    /// scores.insert("Alice", 95);
+    /// scores.insert("Bob", 87);
+    ///
+    /// // Convert map lookups to ResultOption
+    /// let alice_score: ResultOption<i32, String> = scores.get("Alice").into();
+    /// assert_eq!(alice_score, ResultOption::Ok(95));
+    ///
+    /// let diana_score: ResultOption<i32, String> = scores.get("Diana").into();
+    /// assert_eq!(diana_score, ResultOption::None);
+    ///
+    /// // Can also use explicit From
+    /// let bob_score: ResultOption<i32, String> = ResultOption::from(scores.get("Bob"));
+    /// assert_eq!(bob_score, ResultOption::Ok(87));
+    /// ```
+    fn from(o: Option<&T>) -> Self {
+        match o {
+            Some(t) => Self::Ok(t.clone()),
+            None => Self::None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
