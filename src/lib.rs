@@ -655,3 +655,7 @@ impl<T: Clone, E> From<Option<&T>> for ResultOption<T, E> {
         }
     }
 }
+
+/// Support for `UnwrapInfallible` trait when error type is `Infallible`.
+#[cfg(feature = "unwrap_infallible")]
+mod infallible;

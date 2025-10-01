@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 `unwrap_unchecked`, `unwrap_or_default`, `unwrap_err`, `unwrap_err_unchecked`,
 `unwrap_option`, `unwrap_option_unchecked`, `unwrap_option_or_some`,
 `unwrap_option_or_some_default`, `unwrap_option_or_none`
+- `unwrap_infallible` functionality added under the `unwrap_infallible` feature (default)
 
 ## [0.2.0] - 2025-09-29
 

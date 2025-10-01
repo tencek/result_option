@@ -12,6 +12,97 @@ Thank you for your interest in contributing to ResultOption! This document outli
 6. **Check docs**: `cargo doc --open`
 7. **Commit changes** with descriptive messages
 
+## Testing the Features
+
+It's crucial to test all possible feature
+combinations to ensure the code compiles and works correctly in all scenarios.
+This crate currently has the following features:
+
+- `unwrap_infallible` (enabled by default)
+
+### Feature Testing Strategy
+
+#### 1. **Test All Feature Combinations**
+
+For `n` features, there are `2^n` possible combinations. Currently with 1 feature,
+we have:
+
+```bash
+# Test with all default features (unwrap_infallible enabled)
+cargo test
+
+# Test with no features
+cargo test --no-default-features
+
+# Test with specific features enabled
+cargo test --no-default-features --features unwrap_infallible
+```
+
+#### 2. **Compilation Tests**
+
+Ensure the code compiles in all configurations:
+
+```bash
+# Check compilation with default features
+cargo check
+
+# Check compilation without any features  
+cargo check --no-default-features
+
+# Check compilation with specific features
+cargo check --no-default-features --features unwrap_infallible
+```
+
+#### 3. **Documentation Tests**
+
+Test that documentation examples work across feature configurations:
+
+```bash
+# Test docs with default features
+cargo test --doc
+
+# Test docs without features (should exclude feature-gated examples)
+cargo test --doc --no-default-features
+```
+
+#### 4. **Automated Feature Testing**
+
+Consider using tools like:
+
+- **[`cargo-hack`](https://github.com/taiki-e/cargo-hack)**: Tests all feature combinations automatically
+
+  ```bash
+  # Install cargo-hack
+  cargo install cargo-hack
+  
+  # Test all feature combinations
+  cargo hack test --feature-powerset
+  
+  # Check all feature combinations compile
+  cargo hack check --feature-powerset
+  ```
+
+#### 5. **Feature Testing Checklist**
+
+Before releasing, verify:
+
+- [ ] Code compiles with all default features: `cargo check`
+- [ ] Code compiles with no features: `cargo check --no-default-features`  
+- [ ] All tests pass with default features: `cargo test`
+- [ ] All tests pass without optional features: `cargo test --no-default-features`
+- [ ] Documentation builds correctly: `cargo doc --no-default-features` and `cargo doc`
+- [ ] Feature-gated code is properly conditional with `#[cfg(feature = "...")]`
+- [ ] Dependencies are properly marked as optional when they're only needed for specific features
+
+#### 6. **Feature Documentation**
+
+When adding new optional features:
+
+1. **Document in `Cargo.toml`**: Add clear feature descriptions
+2. **Update README**: Explain what each feature does and how to enable/disable it
+3. **Use conditional compilation**: Properly gate code with `#[cfg(feature = "...")]`
+4. **Test examples**: Ensure documentation examples work with and without the feature
+
 ## Release Workflow
 
 Follow this complete workflow when releasing a new version:

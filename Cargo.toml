@@ -9,3 +9,10 @@ repository = "https://github.com/tencek/result_option"
 keywords = ["result", "option", "utility", "error-handling"]
 categories = ["data-structures", "rust-patterns"]
 readme = "README.md"
+
+[features]
+default = ["unwrap_infallible"]
+unwrap_infallible = ["dep:unwrap-infallible"]
+
+[dependencies]
+unwrap-infallible = { version = "0.1", optional = true }
