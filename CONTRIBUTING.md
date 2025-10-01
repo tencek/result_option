@@ -1,6 +1,7 @@
 # Contributing to ResultOption
 
-Thank you for your interest in contributing to ResultOption! This document outlines the development and release process.
+Thank you for your interest in contributing to ResultOption! This document outlines
+the development and release process.
 
 ## Development Workflow
 
