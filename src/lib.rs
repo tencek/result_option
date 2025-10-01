@@ -4,6 +4,7 @@
 use core::fmt::Debug;
 
 /// A three-way enum combining `Result` and `Option`.
+#[must_use = "This `ResultOption` should be handled"]
 #[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
 pub enum ResultOption<T, E> {
     /// Success with value
@@ -77,7 +78,6 @@ impl<T, E> ResultOption<T, E> {
     }
 
     /// Converts from `ResultOption<T, E>` to `ResultOption<&T, &E>`, borrowing the values if they exist.
-    #[must_use]
     #[inline]
     pub const fn as_ref(&self) -> ResultOption<&T, &E> {
         match self {
@@ -88,7 +88,6 @@ impl<T, E> ResultOption<T, E> {
     }
 
     /// Converts from `ResultOption<T, E>` to `ResultOption<&mut T, &mut E>`, mutably borrowing the values if they exist.
-    #[must_use]
     #[inline]
     pub const fn as_mut(&mut self) -> ResultOption<&mut T, &mut E> {
         match self {
@@ -138,7 +137,6 @@ impl<T, E> ResultOption<T, E> {
     }
 
     /// Maps an `Err` value using the provided function, leaving `Ok` and `None` unchanged.
-    #[must_use]
     #[inline]
     pub fn map_err<F, O: FnOnce(E) -> F>(self, f: O) -> ResultOption<T, F> {
         match self {
@@ -149,7 +147,6 @@ impl<T, E> ResultOption<T, E> {
     }
 
     /// Maps a `None` value using the provided function, leaving `Ok` and `Err` unchanged.
-    #[must_use]
     #[inline]
     pub fn inspect<F: FnOnce(&T)>(self, f: F) -> Self {
         if let Self::Ok(ref t) = self {
