@@ -1,6 +1,8 @@
 #![deny(missing_docs)]
 #![doc = include_str!("../README.md")]
 
+use core::fmt::Debug;
+
 /// A three-way enum combining `Result` and `Option`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ResultOption<T, E> {
@@ -187,11 +189,14 @@ impl<T, E> ResultOption<T, E> {
     /// ```
     #[inline]
     #[track_caller]
-    pub fn unwrap(self) -> T {
+    pub fn unwrap(self) -> T
+    where
+        E: Debug,
+    {
         match self {
             Self::Ok(t) => t,
             Self::None => panic!("called `ResultOption::unwrap()` on a `None` value"),
-            Self::Err(_) => panic!("called `ResultOption::unwrap()` on an `Err` value"),
+            Self::Err(e) => panic!("called `ResultOption::unwrap()` on an `Err` value: {e:?}"),
         }
     }
 
@@ -351,10 +356,13 @@ impl<T, E> ResultOption<T, E> {
     /// ```
     #[inline]
     #[track_caller]
-    pub fn unwrap_err(self) -> E {
+    pub fn unwrap_err(self) -> E
+    where
+        T: Debug,
+    {
         match self {
             Self::Err(e) => e,
-            Self::Ok(_) => panic!("called `ResultOption::unwrap_err()` on an `Ok` value"),
+            Self::Ok(ok) => panic!("called `ResultOption::unwrap_err()` on an `Ok` value: {ok:?}"),
             Self::None => panic!("called `ResultOption::unwrap_err()` on a `None` value"),
         }
     }
@@ -429,11 +437,16 @@ impl<T, E> ResultOption<T, E> {
     /// ```
     #[inline]
     #[track_caller]
-    pub fn unwrap_option(self) -> Option<T> {
+    pub fn unwrap_option(self) -> Option<T>
+    where
+        E: Debug,
+    {
         match self {
             Self::Ok(t) => Some(t),
             Self::None => None,
-            Self::Err(_) => panic!("called `ResultOption::unwrap_option()` on an `Err` value"),
+            Self::Err(e) => {
+                panic!("called `ResultOption::unwrap_option()` on an `Err` value: {e:?}")
+            }
         }
     }
 
