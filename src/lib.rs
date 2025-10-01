@@ -200,6 +200,48 @@ impl<T, E> ResultOption<T, E> {
         }
     }
 
+    /// Unwraps a `ResultOption`, yielding the content of an `Ok`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is a `None` or `Err`, with a panic message provided by you,
+    /// and the content of the `Err` (if applicable).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(x.expect("the number should be present"), 2);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// x.expect("testing expect with None"); // panics with `testing expect with None`
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("not found");
+    /// x.expect("expected a valid result"); // panics with `expected a valid result: not found`
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn expect(self, msg: &str) -> T
+    where
+        E: Debug,
+    {
+        match self {
+            Self::Ok(t) => t,
+            Self::None => panic!("{msg}"),
+            Self::Err(e) => panic!("{msg}: {e:?}"),
+        }
+    }
+
     /// Returns the contained `Ok` value, consuming the `self` value,
     /// without checking that the value is not `None` or `Err`.
     ///
@@ -367,6 +409,48 @@ impl<T, E> ResultOption<T, E> {
         }
     }
 
+    /// Unwraps a `ResultOption`, yielding the content of an `Err`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is an `Ok` or `None`, with a panic message provided by you,
+    /// and the content of the `Ok` (if applicable).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("not found");
+    /// assert_eq!(x.expect_err("should be an error"), "not found");
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(42);
+    /// x.expect_err("testing expect_err with Ok"); // panics with custom message
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::None;
+    /// x.expect_err("testing expect_err with None"); // panics with custom message
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn expect_err(self, msg: &str) -> E
+    where
+        T: Debug,
+    {
+        match self {
+            Self::Err(e) => e,
+            Self::Ok(ok) => panic!("{msg}: {ok:?}"),
+            Self::None => panic!("{msg}"),
+        }
+    }
+
     /// Returns the contained `Err` value, consuming the `self` value,
     /// without checking that the value is not `Ok` or `None`.
     ///
@@ -447,6 +531,47 @@ impl<T, E> ResultOption<T, E> {
             Self::Err(e) => {
                 panic!("called `ResultOption::unwrap_option()` on an `Err` value: {e:?}")
             }
+        }
+    }
+
+    /// Converts to `Option<T>`, returning `Some` value if `Ok`, `None` if `None`, or panicking with a custom message if `Err`.
+    ///
+    /// This treats the `ResultOption` as an `Option<T>`, where both `None` and `Err` are
+    /// considered "no value" cases, but only `Err` causes a panic with your custom message.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is an `Err`, with a panic message provided by you,
+    /// and the content of the `Err`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Ok(2);
+    /// assert_eq!(x.expect_option("should not be an error"), Some(2));
+    ///
+    /// let y: ResultOption<u32, &str> = ResultOption::None;
+    /// assert_eq!(y.expect_option("should not be an error"), None);
+    /// ```
+    ///
+    /// ```should_panic
+    /// use result_option::ResultOption;
+    ///
+    /// let x: ResultOption<u32, &str> = ResultOption::Err("not found");
+    /// x.expect_option("expected success or none"); // panics with custom message + error
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn expect_option(self, msg: &str) -> Option<T>
+    where
+        E: Debug,
+    {
+        match self {
+            Self::Ok(t) => Some(t),
+            Self::None => None,
+            Self::Err(e) => panic!("{msg}: {e:?}"),
         }
     }
 

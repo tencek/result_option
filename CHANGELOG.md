@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 `unwrap_option`, `unwrap_option_unchecked`, `unwrap_option_or_some`,
 `unwrap_option_or_some_default`, `unwrap_option_or_none`
 - `unwrap_infallible` functionality added under the `unwrap_infallible` feature (default)
+- `expect()` method for extracting `Ok` value with custom panic message
+- `expect_err()` method for extracting `Err` value with custom panic message
+- `expect_option()` method for converting to `Option<T>` with custom panic message on `Err`
 
 ## [0.2.0] - 2025-09-29
 
