@@ -4,7 +4,7 @@
 use core::fmt::Debug;
 
 /// A three-way enum combining `Result` and `Option`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Debug, Hash)]
 pub enum ResultOption<T, E> {
     /// Success with value
     Ok(T),

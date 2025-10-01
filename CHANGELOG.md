@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `expect()` method for extracting `Ok` value with custom panic message
 - `expect_err()` method for extracting `Err` value with custom panic message
 - `expect_option()` method for converting to `Option<T>` with custom panic message on `Err`
+- Derived traits `Copy`, `PartialOrd`, `Ord`, and `Hash` for `ResultOption`
 
 ## [0.2.0] - 2025-09-29
 
